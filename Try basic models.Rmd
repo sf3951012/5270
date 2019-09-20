@@ -1,0 +1,119 @@
+---
+title: "Try"
+author: "Sijia"
+date: "1/12/2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+read in datasets
+```{r}
+setwd("/Users/sijia/Downloads")
+total <- read.csv("joint_2017_Jan.csv")
+#rank <-read.csv("Cornell_Product_Rank_01.csv")
+```
+
+```{r}
+library("dplyr")
+try <- left_join(total,totalPrice, by = c("OMSID"))
+```
+
+
+```{r}
+#summary(priceChange)
+summary(total)
+#summary(data)
+#length(priceChange$PROMO_NAME[priceChange$PROMO_NAME == "In-Cart"])
+sum(is.na(total$Review.Count))
+```
+
+Calculate conversion rate
+```{r}
+conversion <- total$Orders/total$Product_Visits
+total1 <- cbind(total,conversion)
+
+set.seed(1)
+train = sample(1:nrow(Test1), nrow(Test1)*2/3)
+test = Test1[-train,]
+train = Test1[train,]
+```
+
+
+Try Simple Regression
+```{r}
+reg <- lm(conversion ~ Avg.Salient.Bullets + Super.SKU + Collection + Coordinating + Accessory + Assembly.Doc + Specification.Doc + Warranty.Doc +Install.Doc + Rich.Content + Spin + Review.Count + Average.Rating+PROMO_TYPE+EFF_RETAIL+Impressions+Avg_Product_Rank, data = train)
+summary(reg)
+pred = predict(reg, test)
+mean((pred-test$conversion)^2)
+```
+
+
+forward subset selection
+```{r}
+library (leaps)
+regfit.fwd=regsubsets(conversion~Image.Count+Video.Count + Avg.Salient.Bullets + Super.SKU + Collection + Coordinating + Accessory + Assembly.Doc + Specification.Doc + Warranty.Doc +Install.Doc + Rich.Content + Spin +Review.Count + Average.Rating, data = train, nvmax =10, method ="forward")
+#summary(regfit.fwd)
+adjr2_vec = NULL
+for (v in c(1:10)) {
+  regit.fwd=regsubsets(conversion~Image.Count+Video.Count + Avg.Salient.Bullets + Super.SKU + Collection + Coordinating + Accessory + Assembly.Doc + Specification.Doc + Warranty.Doc +Install.Doc + Rich.Content + Spin +Review.Count + Average.Rating,data=train ,nvmax =v,method ="forward")
+  adjr2_vec = c(adjr2_vec, summary(regfit.fwd)$adjr2[v])
+}
+
+which.max(adjr2_vec)
+plot(c(1:10), adjr2_vec, type='l')
+coef(regfit.fwd,7)
+
+set.seed(1)
+model1=lm(conversion~Average.Rating+, data=train)
+summary(model1)
+pred1=predict(model1,test)
+mean((pred1-test$conversion)^2)
+```
+
+
+Tree-based model
+```{r}
+#install.packages("gbm")
+library(gbm)
+
+#boosting tree
+set.seed(1)
+power <- seq(from = -10,to = -0.1,by = 0.1)
+train_MSE <- rep(0,100)
+test_MSE <- rep(0,100)
+for (i in 1:100){
+  set.seed(1)
+  boost.total = gbm(conversion~Image.Count+Video.Count + Avg.Salient.Bullets + Super.SKU + Collection + Coordinating + Accessory + Assembly.Doc + Specification.Doc + Warranty.Doc +Install.Doc + Rich.Content + Spin, data = train, distribution = "gaussian", 
+                n.trees = 100, shrinkage = 10^power[i]) 
+  yhat.boost = predict(boost.total, newdata = train, n.trees = 100)
+  yhat.boost2 = predict(boost.total, newdata = test, n.trees = 100)
+  train_MSE[i] = mean((yhat.boost - train$conversion)^2)
+  test_MSE[i] = mean((yhat.boost2 - test$conversion)^2)
+}  
+plot(10^power,test_MSE)  
+which.min(test_MSE)
+boost_MSE = test_MSE[92]
+
+#bagging tree
+library(randomForest)
+bag_test_MSE <- rep(0,16)
+for (i in 1:16) {
+  set.seed(1)
+  bag.total=randomForest(conversion~.,data=train,mtry = i,importance=TRUE)
+  bag.pred=predict(bag.total,test)
+  bag_test_MSE[i] = mean((bag.pred - test$conversion)^2)
+}
+par(mfrow = c(1,1))
+plot(seq(1,16,1),bag_test_MSE,ylab = 'CV Error',main = 'Random Forest CV',xlab = 'm')
+points(5,bag_test_MSE[5],col = 'red')
+which.min(bag_test_MSE)
+bag.total=randomForest(conversion~.,data=train,mtry = 5,importance=TRUE)
+bag.pred=predict(bag.total,test)
+bag_test_MSE = mean((bag.pred - test$conversion)^2)
+importance(bag.total)
+```

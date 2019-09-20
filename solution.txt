@@ -1,0 +1,116 @@
+1. 
+a) url for repo: https://github.coecis.cornell.edu/sf395/ORIE5270
+
+
+2)Use python to run
+
+a) get data from html
+I read the html using rllib.request.urlopen as a string and split it into a list of strings by '\n'. I deleted unrelated items and used re.search to find the matched names/years/frequency I want from each item in the string list by using a for loop. Then I appended match items and created a dataframe using pd.dataframe and pd.series. Finally, I printed the first ten rows. 
+
+b) Find the highest frequency
+SARKOZY, ANDRAS  has collaborated with Erdos most often and the frequency is 62
+I found the largest frequency and the corresponding name by finding the max number in the 'Frequency' column in the dataframe after I converted the column's value to numeric
+
+
+c) Find the latest year
+LUCA, FLORIAN  last coauthored with Erdos in terms of the year of his/her first joint paper in year 2007
+I found the latest year by trying to find the maximum in 'Year' column of the dataframe.
+
+d) histograms are in "HW2_2d.pdf". 
+The histogram plot on the left has x-axis corresponding to 'Frequency' column (at least 1 and at most 62) and y axis of count, so it seems like over 160 people have only worked with Erdos once. 
+
+The histogram on the right has x-axis corresponding to 'Year' column (ranging from around 1935 to 2007) and y axis is the count of people, and it seems like a lot of people (around 114 people) firstly collaborated with Erdos around 1990.
+
+Bonus question:
+Ben’s Erdos num = 3, directly obtained from online calculator (https://www.csauthors.net/distance/paul-erdos/benjamin-grimmer)
+Lijun's Erdos num = 4 because he has collaborated with Yudong Chen and lek-heng-lim, and both of them have Erdos nums of 3 (https://www.csauthors.net/distance/paul-erdos/yudong-chen, https://www.csauthors.net/distance/paul-erdos/lek-heng-lim). 
+
+3. 
+Use python3 to run
+installed python 3.6.5 version
+install tensorflow 
+(python3 -m pip install --upgrade https://storage.googleapis.com/tensorflow/mac/cpu/tensorflow-1.12.0-py3-none-any.whl)
+install keras (sudo pip3 install keras; sudo pip install msgpack)
+install matlabplot (python3 -m pip install -U matplotlib)
+install certifi in order to read the cifar10 dataset: sudo /Applications/Python\ 3.6/Install\ Certificates.command
+
+
+a) code directly taken from the website (https://adventuresinmachinelearning.com/keras-tutorial-cnn-11-lines/)
+set num of classes = 10 in the last dense layer
+
+Summary information of your model as follows:
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+conv2d_1 (Conv2D)            (None, 32, 32, 32)        2432      
+_________________________________________________________________
+max_pooling2d_1 (MaxPooling2 (None, 16, 16, 32)        0         
+_________________________________________________________________
+conv2d_2 (Conv2D)            (None, 14, 14, 32)        9248      
+_________________________________________________________________
+flatten_1 (Flatten)          (None, 6272)              0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 512)               3211776   
+_________________________________________________________________
+dense_2 (Dense)              (None, 10)                5130      
+=================================================================
+Total params: 3,228,586
+Trainable params: 3,228,586
+Non-trainable params: 0
+_________________________________________________________________
+
+b) please look at "HW2_3b.png" with the plot with "model loss for b)" title
+
+c) please look at "HW2_3c.png" with "model loss with BatchNormalization layer" title 
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+conv2d_1 (Conv2D)            (None, 32, 32, 32)        2432      
+_________________________________________________________________
+batch_normalization_1 (Batch (None, 32, 32, 32)        128       
+_________________________________________________________________
+max_pooling2d_1 (MaxPooling2 (None, 16, 16, 32)        0         
+_________________________________________________________________
+conv2d_2 (Conv2D)            (None, 14, 14, 32)        9248      
+_________________________________________________________________
+flatten_1 (Flatten)          (None, 6272)              0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 512)               3211776   
+_________________________________________________________________
+dense_2 (Dense)              (None, 10)                5130      
+=================================================================
+Total params: 3,228,714
+Trainable params: 3,228,650
+Non-trainable params: 64
+
+d) please look at "HW2_3d.png" file with "model loss with dropout layer" title
+_________________________________________________________________
+Layer (type)                 Output Shape              Param #   
+=================================================================
+conv2d_1 (Conv2D)            (None, 32, 32, 32)        2432      
+_________________________________________________________________
+dropout_1 (Dropout)          (None, 32, 32, 32)        0         
+_________________________________________________________________
+max_pooling2d_1 (MaxPooling2 (None, 16, 16, 32)        0         
+_________________________________________________________________
+conv2d_2 (Conv2D)            (None, 14, 14, 32)        9248      
+_________________________________________________________________
+flatten_1 (Flatten)          (None, 6272)              0         
+_________________________________________________________________
+dense_1 (Dense)              (None, 512)               3211776   
+_________________________________________________________________
+dense_2 (Dense)              (None, 10)                5130      
+=================================================================
+Total params: 3,228,586
+Trainable params: 3,228,586
+Non-trainable params: 0
+
+It seems like that the additional layers do not necessarily help me decrease errors (got lower training errors but almost similar or even higher testing errors)
+
+For batchNormalization layer, the additional layer seems even worsen the training. The test error becomes larger than the test error as epoch increases. The training error initially is higher but becomes lower when epoch is higher.
+
+For dropout layer, the additional layer does not seem to have large help in training. The training errors and test errors with dropout layer are almost the same as those without the dropout layer.
+Therefore, although in general the test and training errors should become lower with additional layers, it is likely that, regardless of the parameters being used, additional layers will reduce the training errors but not necessarily the test error.
+
+
+
